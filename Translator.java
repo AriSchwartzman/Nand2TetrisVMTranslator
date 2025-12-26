@@ -4,27 +4,17 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
+import VMTranslator.*;
 
 public class Translator {
-    public static enum Command {
-        PUSH,
-        POP,
-        ADD,
-        SUB,
-        NEG,
-        EQ,
-        GT,
-        LT,
-        AND,
-        OR,
-        NOT 
-    }
+    
 
     public static void main(String[] args) {
-        Parser parser = new Parser();
+        AssemblyGenerator generator = new AssemblyGenerator();
+        Parser parser = new Parser(generator);
         String fileName = args[0];
         File vmFile = new File(fileName);
-        String assemblyFileName = fileName.replace("asm", "hack");
+        String assemblyFileName = fileName.replace("vm", "asm");
         String assemblyCode = "";
 
         try {
@@ -39,7 +29,9 @@ public class Translator {
             e.printStackTrace(); // Print error details
         }
 
-        assemblyCode = parser.prettify(vmFile);
+        String cleanVMCode = parser.prettify(vmFile);
+
+        assemblyCode = parser.generateAssembly(cleanVMCode);
 
         try {
             FileWriter myWriter = new FileWriter(assemblyFileName);

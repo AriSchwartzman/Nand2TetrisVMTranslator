@@ -2,36 +2,13 @@ package VMTranslator;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.HashMap;
 import java.util.Scanner;
 
 public class Parser {
-    private HashMap<String, Integer> symbolTable = new HashMap<>();
+    private AssemblyGenerator generator;
 
-    public Parser() {
-        symbolTable.put("SP", 0);
-        symbolTable.put("LCL", 1);
-        symbolTable.put("ARG", 2);
-        symbolTable.put("THIS", 3);
-        symbolTable.put("THAT", 4);
-        symbolTable.put("R0", 0);
-        symbolTable.put("R1", 1);
-        symbolTable.put("R2", 2);
-        symbolTable.put("R3", 3);
-        symbolTable.put("R4", 4);
-        symbolTable.put("R5", 5);
-        symbolTable.put("R6", 6);
-        symbolTable.put("R7", 7);
-        symbolTable.put("R8", 8);
-        symbolTable.put("R9", 9);
-        symbolTable.put("R10", 10);
-        symbolTable.put("R11", 11);
-        symbolTable.put("R12", 12);
-        symbolTable.put("R13", 13);
-        symbolTable.put("R14", 14);
-        symbolTable.put("R15", 15);
-        symbolTable.put("SCREEN", 16384);
-        symbolTable.put("KBD", 24576);
+    public Parser(AssemblyGenerator generator) {
+        this.generator = generator;
     }
 
     public String prettify(File VMFile) {
@@ -42,6 +19,7 @@ public class Parser {
                 // Reads next line in assembly file
                 String line = scanner.nextLine();
 
+                // Eliminates comments
                 if (line.contains("//")) {
                     String[] lineWithComments = line.split("//");
                     line = lineWithComments[0];
@@ -54,15 +32,32 @@ public class Parser {
                     cleanFile = cleanFile + line + "\n";
                 }
             }
-            
+
         } catch (FileNotFoundException error) {
             System.out.println("File not found");
             error.printStackTrace();
         }
-        // Eliminates comments
-        
 
         return cleanFile;
+    }
+    
+    public String generateAssembly(String vmCode) {
+        String assemblyCode = "";
+        int counter = 0;
+
+        Scanner scanner = new Scanner(vmCode);
+        while (scanner.hasNextLine()) {
+            // Reads next line in assembly file
+            String line = scanner.nextLine();
+            assemblyCode = assemblyCode + generator.generateAssembly(line, counter);
+            counter++;
+        }
+
+        scanner.close();
+
+        
+
+        return assemblyCode;
     }
 
 }
