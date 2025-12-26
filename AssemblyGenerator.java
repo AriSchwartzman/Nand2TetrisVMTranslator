@@ -1,7 +1,3 @@
-package VMTranslator;
-
-import java.util.HashMap;
-
 public class AssemblyGenerator {
 
     public String generateAssembly(String line, int counter, String baseFileName) {
