@@ -14,7 +14,8 @@ public class Translator {
         Parser parser = new Parser(generator);
         String fileName = args[0];
         File vmFile = new File(fileName);
-        String assemblyFileName = fileName.replace("vm", "asm");
+        String baseFileName = fileName.substring(0, fileName.length() - 2);
+        String assemblyFileName = baseFileName + "asm";
         String assemblyCode = "";
 
         try {
@@ -31,7 +32,7 @@ public class Translator {
 
         String cleanVMCode = parser.prettify(vmFile);
 
-        assemblyCode = parser.generateAssembly(cleanVMCode);
+        assemblyCode = parser.generateAssembly(cleanVMCode, baseFileName);
 
         try {
             FileWriter myWriter = new FileWriter(assemblyFileName);

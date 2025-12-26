@@ -41,7 +41,7 @@ public class Parser {
         return cleanFile;
     }
     
-    public String generateAssembly(String vmCode) {
+    public String generateAssembly(String vmCode, String baseFileName) {
         String assemblyCode = "";
         int counter = 0;
 
@@ -49,7 +49,7 @@ public class Parser {
         while (scanner.hasNextLine()) {
             // Reads next line in assembly file
             String line = scanner.nextLine();
-            assemblyCode = assemblyCode + generator.generateAssembly(line, counter);
+            assemblyCode = assemblyCode + generator.generateAssembly(line, counter, baseFileName);
             counter++;
         }
 
