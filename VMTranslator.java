@@ -2,9 +2,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class Translator {
-    
-
+public class VMTranslator {
     public static void main(String[] args) {
         AssemblyGenerator generator = new AssemblyGenerator();
         Parser parser = new Parser(generator);

@@ -15,126 +15,35 @@ public class AssemblyGenerator {
         if (command.equals("push")) {
             switch (segment) {
                 case "local":
-                    assembly = "// " + line + "\n" + """
-                            @LCL
-                            D=M
-                            @%1$s
-                            A=D+A
-                            D=M
-                            @SP
-                            A=M
-                            M=D
-                            @SP
-                            M=M+1
-                            """;
+                    assembly = "// " + line + "\n@LCL\nD=M\n@%1$s\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
                     break;
 
                 case "argument":
-                    assembly = "// " + line + "\n" + """
-                            @ARG
-                            D=M
-                            @%1$s
-                            A=D+A
-                            D=M
-                            @SP
-                            A=M
-                            M=D
-                            @SP
-                            M=M+1
-                            """;
+                    assembly = "// " + line + "\n@ARG\nD=M\n@%1$s\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
                     break;
 
                 case "static":
-                    assembly = "// " + line + "\n" + """
-                            @%2$s%1$s
-                            D=M
-                            @SP
-                            A=M
-                            M=D
-                            @SP
-                            M=M+1
-                            """;
+                    assembly = "// " + line + "\n@%2$s%1$s\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
                     break;
 
                 case "constant":
-                    assembly = "// " + line + "\n" + """
-                            @%1$s
-                            D=A
-                            @SP
-                            A=M
-                            M=D
-                            @SP
-                            M=M+1
-                            """;
+                    assembly = "// " + line + "\n@%1$s\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
                     break;
 
                 case "this":
-                    assembly = "// " + line + "\n" + """
-                            @THIS
-                            D=M
-                            @%1$s
-                            A=D+A
-                            D=M
-                            @SP
-                            A=M
-                            M=D
-                            @SP
-                            M=M+1
-                            """;
+                    assembly = "// " + line + "\n@THIS\nD=M\n@%1$s\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
                     break;
 
                 case "that":
-                    assembly = "// " + line + "\n" + """
-                            @THAT
-                            D=M
-                            @%1$s
-                            A=D+A
-                            D=M
-                            @SP
-                            A=M
-                            M=D
-                            @SP
-                            M=M+1
-                            """;
+                    assembly = "// " + line + "\n@THAT\nD=M\n@%1$s\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
                     break;
 
                 case "temp":
-                    assembly = "// " + line + "\n" + """
-                            @%1$s
-                            D=A
-                            @5
-                            A=D+A
-                            D=M
-                            @SP
-                            A=M
-                            M=D
-                            @SP
-                            M=M+1
-                            """;
+                    assembly = "// " + line + "\n@%1$s\nD=A\n@5\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
                     break;
 
                 case "pointer":
-                    assembly = "// " + line + "\n" + """
-                            @%1$s
-                            D=A
-                            @POINTER%3$d
-                            D;JEQ
-                            @THAT
-                            D=A
-                            @ADDSTACK%3$d
-                            0;JMP
-                            (POINTER%3$d)
-                            @THIS
-                            D=A
-                            (ADDSTACK%3$d)
-                            A=D
-                            D=M
-                            @SP
-                            A=M
-                            M=D
-                            @SP
-                            M=M+1
-                            """;
+                    assembly = "// " + line + "\n@%1$s\nD=A\n@POINTER%3$d\nD;JEQ\n@THAT\nD=A\n@ADDSTACK%3$d\n0;JMP\n(POINTER%3$d)\n@THIS\nD=A\n(ADDSTACK%3$d)\nA=D\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
                     break;
 
                 default:
@@ -144,126 +53,34 @@ public class AssemblyGenerator {
         } else {
             switch (segment) {
                 case "local":
-                    assembly = "// " + line + "\n" + """
-                            @LCL
-                            D=M
-                            @%1$s
-                            D=D+A
-                            @R13
-                            M=D
-                            @SP
-                            AM=M-1
-                            D=M
-                            @R13
-                            A=M
-                            M=D
-                            """;
+                    assembly = "// " + line + "\n@LCL\nD=M\n@%1$s\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
                     break;
 
                 case "argument":
-                    assembly = "// " + line + "\n" + """
-                            @ARG
-                            D=M
-                            @%1$s
-                            D=D+A
-                            @R13
-                            M=D
-                            @SP
-                            AM=M-1
-                            D=M
-                            @R13
-                            A=M
-                            M=D
-                            """;
+                    assembly = "// " + line + "\n@ARG\nD=M\n@%1$s\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
                     break;
 
                 case "static":
-                    assembly = """
-                            @SP
-                            AM=M-1
-                            D=M
-                            @%2$s%1$s
-                            M=D
-                            """;;
+                    assembly = "// " + line + "\n@SP\nAM=M-1\nD=M\n@%2$s%1$s\nM=D\n";
                     break;
 
                 case "constant":
                     throw new RuntimeException("error: cannot pop to constant segment");
 
                 case "this":
-                    assembly = "// " + line + "\n" + """
-                            @THIS
-                            D=M
-                            @%1$s
-                            D=D+A
-                            @R13
-                            M=D
-                            @SP
-                            AM=M-1
-                            D=M
-                            @R13
-                            A=M
-                            M=D
-                            """;
+                    assembly = "// " + line + "\n@THIS\nD=M\n@%1$s\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
                     break;
 
                 case "that":
-                    assembly = "// " + line + "\n" + """
-                            @THAT
-                            D=M
-                            @%1$s
-                            D=D+A
-                            @R13
-                            M=D
-                            @SP
-                            AM=M-1
-                            D=M
-                            @R13
-                            A=M
-                            M=D
-                            """;
+                    assembly = "// " + line + "\n@THAT\nD=M\n@%1$s\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
                     break;
 
                 case "temp":
-                    assembly = "// " + line + "\n" + """
-                            @%1$s
-                            D=A
-                            @5
-                            D=D+A
-                            @R13
-                            M=D
-                            @SP
-                            AM=M-1
-                            D=M
-                            @R13
-                            A=M
-                            M=D
-                            """;
+                    assembly = "// " + line + "\n@%1$s\nD=A\n@5\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
                     break;
 
                 case "pointer":
-                    assembly = "// " + line + "\n" + """
-                            @%1$s
-                            D=A
-                            @POINTER%3$d
-                            D;JEQ
-                            @THAT
-                            D=A
-                            @POPSTACK%3$d
-                            0;JMP
-                            (POINTER%3$d)
-                            @THIS
-                            D=A
-                            (POPSTACK%3$d)
-                            @R13
-                            M=D
-                            @SP
-                            AM=M-1
-                            D=M
-                            @R13
-                            A=M
-                            M=D
-                            """;
+                    assembly = "// " + line + "\n@%1$s\nD=A\n@POINTER%3$d\nD;JEQ\n@THAT\nD=A\n@POPSTACK%3$d\n0;JMP\n(POINTER%3$d)\n@THIS\nD=A\n(POPSTACK%3$d)\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
                     break;
 
                 default:
@@ -281,149 +98,42 @@ public class AssemblyGenerator {
 
         switch (command) {
             case "add":
-                assembly = "// " + line + "\n" + """
-                        @SP
-                        A=M-1
-                        D=M
-                        M=0
-                        A=A-1
-                        M=D+M
-                        @SP
-                        M=M-1
-                        """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nM=D+M\n@SP\nM=M-1\n";
                 break;
 
             case "sub":
-                assembly = "// " + line + "\n" + """
-                        @SP
-                        A=M-1
-                        D=M
-                        M=0
-                        A=A-1
-                        M=M-D
-                        @SP
-                        M=M-1
-                        """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nM=M-D\n@SP\nM=M-1\n";
                 break;
 
             case "neg":
-                assembly = "// " + line + "\n" + """
-                        @SP
-                        A=M-1
-                        M=-M
-                        """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nM=-M\n";
                 break;
 
             case "eq":
-                assembly = "// " + line + "\n" + """
-                        @SP
-                        A=M-1
-                        D=M
-                        M=0
-                        A=A-1
-                        D=M-D
-                        @EQUAL%1$d
-                        D;JEQ
-                        D=0
-                        @SET%1$d
-                        0;JMP
-                        (EQUAL%1$d)
-                        D=-1
-                        (SET%1$d)
-                        @SP
-                        A=M-1
-                        A=A-1
-                        M=D
-                        @SP
-                        M=M-1
-                        """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nD=M-D\n@EQUAL%1$d\nD;JEQ\nD=0\n@SET%1$d\n0;JMP\n(EQUAL%1$d)\nD=-1\n(SET%1$d)\n@SP\nA=M-1\nA=A-1\nM=D\n@SP\nM=M-1\n";
                 assembly = String.format(assembly, counter);
                 break;
 
             case "gt":
-                assembly = "// " + line + "\n" + """
-                            @SP
-                            A=M-1
-                            D=M
-                            M=0
-                            A=A-1
-                            D=M-D
-                            @EQUAL%1$d
-                            D;JGT
-                            D=0
-                            @SET%1$d
-                            0;JMP
-                            (EQUAL%1$d)
-                            D=-1
-                            (SET%1$d)
-                            @SP
-                            A=M-1
-                            A=A-1
-                            M=D
-                            @SP
-                            M=M-1
-                            """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nD=M-D\n@EQUAL%1$d\nD;JGT\nD=0\n@SET%1$d\n0;JMP\n(EQUAL%1$d)\nD=-1\n(SET%1$d)\n@SP\nA=M-1\nA=A-1\nM=D\n@SP\nM=M-1\n";
                 assembly = String.format(assembly, counter);
                 break;
 
             case "lt":
-                assembly = "// " + line + "\n" + """
-                            @SP
-                            A=M-1
-                            D=M
-                            M=0
-                            A=A-1
-                            D=M-D
-                            @EQUAL%1$d
-                            D;JLT
-                            D=0
-                            @SET%1$d
-                            0;JMP
-                            (EQUAL%1$d)
-                            D=-1
-                            (SET%1$d)
-                            @SP
-                            A=M-1
-                            A=A-1
-                            M=D
-                            @SP
-                            M=M-1
-                            """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nD=M-D\n@EQUAL%1$d\nD;JLT\nD=0\n@SET%1$d\n0;JMP\n(EQUAL%1$d)\nD=-1\n(SET%1$d)\n@SP\nA=M-1\nA=A-1\nM=D\n@SP\nM=M-1\n";
                 assembly = String.format(assembly, counter);
                 break;
 
             case "and":
-                assembly = "// " + line + "\n" + """
-                            @SP
-                            A=M-1
-                            D=M
-                            M=0
-                            A=A-1
-                            M=D&M
-                            @SP
-                            M=M-1
-                            """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nM=D&M\n@SP\nM=M-1\n";
                 break;
 
             case "or":
-                assembly = "// " + line + "\n" + """
-                            @SP
-                            A=M-1
-                            D=M
-                            M=0
-                            A=A-1
-                            M=D|M
-                            @SP
-                            M=M-1
-                            """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nM=D|M\n@SP\nM=M-1\n";
                 break;
 
             case "not":
-                assembly = "// " + line + "\n" + """
-                            @SP
-                            A=M-1
-                            M=!M
-                            """;
+                assembly = "// " + line + "\n@SP\nA=M-1\nM=!M\n";
                 break;
         
             default:
