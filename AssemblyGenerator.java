@@ -1,112 +1,312 @@
-import java.util.Stack;
 
 public class AssemblyGenerator {
 
-    private Stack<String> functionStack = new Stack<>();
+    private String currentFunction;
+    private int returns;
 
     public AssemblyGenerator() {
-        this.functionStack.push(null);
+        this.currentFunction = null;
+        returns = 0;
+    }
+
+    public String generateBootstrap() {
+        return "@261\n" + //
+                "D=A\n" + //
+                "@SP\n" + //
+                "D=D-M\n" + //
+                "@bootstrapSet\n" + //
+                "D;JEQ\n" + //
+                "@256\n" + //
+                "D=A\n" + //
+                "@SP\n" + //
+                "M=D\n" + // SP = 256
+                "\n// call Sys.init\n" +
+                "@LCL\n" + //
+                "D=M\n" + //
+                "@SP\n" + //
+                "AM=M+1\n" + //
+                "M=D\n" + // push LCL
+                "@ARG\n" + //
+                "D=M\n" + //
+                "@SP\n" + //
+                "AM=M+1\n" + //
+                "M=D\n" + // push ARG
+                "@THIS\n" + //
+                "D=M\n" + //
+                "@SP\n" + //
+                "AM=M+1\n" + //
+                "M=D\n" + // push THIS
+                "@THAT\n" + //
+                "D=M\n" + //
+                "@SP\n" + //
+                "AM=M+1\n" + //
+                "M=D\n" + // push THAT
+                "@SP\n" + //
+                "MD=M+1\n" + //
+                "@LCL\n" + //
+                "M=D\n" + // LCL = SP
+                "@5\n" + //
+                "D=D-A\n" + //
+                "@ARG\n" + //
+                "M=D\n" + // ARG = SP - 5
+                "(bootstrapSet)\n" + //
+                "@Sys.init\n" + //
+                "0;JMP\n" + // goto Sys.init
+                "";
     }
 
     public String generateAssembly(String line, int counter, String baseFileName) {
         String[] splitCommand = line.split(" ");
         if (splitCommand[0].equals("push") || splitCommand[0].equals("pop")) {
-            return stackCommand(line, splitCommand[0], splitCommand[1], splitCommand[2], baseFileName,
-                    functionStack.peek(), counter);
+            return stackCommand(splitCommand[0], splitCommand[1], splitCommand[2], baseFileName,
+                    currentFunction, counter);
         } else if (splitCommand.length == 1 && !line.equals("return")) {
-            return logicCommand(line, splitCommand[0], baseFileName, functionStack.peek(), counter);
+            return logicCommand(splitCommand[0], baseFileName, currentFunction, counter);
         } else if (splitCommand[0].equals("label") || splitCommand[0].contains("goto")) {
-            return branchingCommand(line, splitCommand[0], splitCommand[1], baseFileName, functionStack.peek(),
-                    counter);
+            return branchingCommand(splitCommand[0], splitCommand[1], baseFileName, currentFunction);
         } else if (splitCommand[0].equals("return")) {
             return returnCommand();
         } else {
-            return functionCommand(line, splitCommand[0], splitCommand[1], splitCommand[2], baseFileName, counter);
+            return functionCommand(splitCommand[0], splitCommand[1], splitCommand[2]);
         }
     }
 
-    private String stackCommand(String line, String command, String segment, String data, String baseFileName,
+    private String stackCommand(String command, String segment, String data, String baseFileName,
             String functionName, int counter) {
         String assembly;
         if (command.equals("push")) {
             switch (segment) {
                 case "local":
-                    assembly = "// " + line + "\n@LCL\nD=M\n@%1$s\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+                    assembly = "@LCL\n" + //
+                            "D=M\n" + //
+                            "@%1$s\n" + //
+                            "A=D+A\n" + //
+                            "D=M\n" + //
+                            "@SP\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "";
                     break;
-
                 case "argument":
-                    assembly = "// " + line + "\n@ARG\nD=M\n@%1$s\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+                    assembly = "@ARG\n" + //
+                            "D=M\n" + //
+                            "@%1$s\n" + //
+                            "A=D+A\n" + //
+                            "D=M\n" + //
+                            "@SP\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "";
                     break;
-
                 case "static":
-                    assembly = "// " + line + "\n@%2$s%1$s\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+                    assembly = "@%2$s%1$s\n" + //
+                            "D=M\n" + //
+                            "@SP\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "";
                     break;
-
                 case "constant":
-                    assembly = "// " + line + "\n@%1$s\nD=A\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+                    assembly = "@%1$s\n" + //
+                            "D=A\n" + //
+                            "@SP\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "";
                     break;
-
                 case "this":
-                    assembly = "// " + line + "\n@THIS\nD=M\n@%1$s\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+                    assembly = "@THIS\n" + //
+                            "D=M\n" + //
+                            "@%1$s\n" + //
+                            "A=D+A\n" + //
+                            "D=M\n" + //
+                            "@SP\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "";
                     break;
-
                 case "that":
-                    assembly = "// " + line + "\n@THAT\nD=M\n@%1$s\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+                    assembly = "@THAT\n" + //
+                            "D=M\n" + //
+                            "@%1$s\n" + //
+                            "A=D+A\n" + //
+                            "D=M\n" + //
+                            "@SP\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "";
                     break;
-
                 case "temp":
-                    assembly = "// " + line + "\n@%1$s\nD=A\n@5\nA=D+A\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+                    assembly = "@%1$s\n" + //
+                            "D=A\n" + //
+                            "@5\n" + //
+                            "A=D+A\n" + //
+                            "D=M\n" + //
+                            "@SP\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "";
                     break;
-
                 case "pointer":
-                    assembly = "// " + line
-                            + "\n@%1$s\nD=A\n@POINTER%3$d\nD;JEQ\n@THAT\nD=A\n@ADDSTACK%3$d\n0;JMP\n(POINTER%3$d)\n@THIS\nD=A\n(ADDSTACK%3$d)\nA=D\nD=M\n@SP\nA=M\nM=D\n@SP\nM=M+1\n";
+                    assembly = "@%1$s\n" + //
+                            "D=A\n" + //
+                            "@POINTER%3$d\n" + //
+                            "D;JEQ\n" + //
+                            "@THAT\n" + //
+                            "D=A\n" + //
+                            "@ADDSTACK%3$d\n" + //
+                            "0;JMP\n" + //
+                            "(POINTER%3$d)\n" + //
+                            "@THIS\n" + //
+                            "D=A\n" + //
+                            "(ADDSTACK%3$d)\n" + //
+                            "A=D\n" + //
+                            "D=M\n" + //
+                            "@SP\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "";
                     break;
-
                 default:
                     assembly = "";
                     break;
             }
+            ;
         } else {
             switch (segment) {
                 case "local":
-                    assembly = "// " + line
-                            + "\n@LCL\nD=M\n@%1$s\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
+                    assembly = "@LCL\n" + //
+                            "D=M\n" + //
+                            "@%1$s\n" + //
+                            "D=D+A\n" + //
+                            "@R13\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "AM=M-1\n" + //
+                            "D=M\n" + //
+                            "@R13\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "";
                     break;
 
                 case "argument":
-                    assembly = "// " + line
-                            + "\n@ARG\nD=M\n@%1$s\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
+                    assembly = "@ARG\n" + //
+                            "D=M\n" + //
+                            "@%1$s\n" + //
+                            "D=D+A\n" + //
+                            "@R13\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "AM=M-1\n" + //
+                            "D=M\n" + //
+                            "@R13\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "";
                     break;
 
                 case "static":
-                    assembly = "// " + line + "\n@SP\nAM=M-1\nD=M\n@%2$s%1$s\nM=D\n";
+                    assembly = "@SP\n" + //
+                            "AM=M-1\n" + //
+                            "D=M\n" + //
+                            "@%2$s%1$s\n" + //
+                            "M=D\n" + //
+                            "";
                     break;
 
                 case "constant":
                     throw new RuntimeException("error: cannot pop to constant segment");
 
                 case "this":
-                    assembly = "// " + line
-                            + "\n@THIS\nD=M\n@%1$s\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
+                    assembly = "@THIS\n" + //
+                            "D=M\n" + //
+                            "@%1$s\n" + //
+                            "D=D+A\n" + //
+                            "@R13\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "AM=M-1\n" + //
+                            "D=M\n" + //
+                            "@R13\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "";
                     break;
 
                 case "that":
-                    assembly = "// " + line
-                            + "\n@THAT\nD=M\n@%1$s\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
+                    assembly = "@THAT\n" + //
+                            "D=M\n" + //
+                            "@%1$s\n" + //
+                            "D=D+A\n" + //
+                            "@R13\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "AM=M-1\n" + //
+                            "D=M\n" + //
+                            "@R13\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "";
                     break;
 
                 case "temp":
-                    assembly = "// " + line + "\n@%1$s\nD=A\n@5\nD=D+A\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
+                    assembly = "@%1$s\n" + //
+                            "D=A\n" + //
+                            "@5\n" + //
+                            "D=D+A\n" + //
+                            "@R13\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "AM=M-1\n" + //
+                            "D=M\n" + //
+                            "@R13\n" + //
+                            "A=M\n" + //
+                            "M=D\n";
                     break;
 
                 case "pointer":
-                    assembly = "// " + line
-                            + "\n@%1$s\nD=A\n@%2$s.%4$s$POINTER%3$d\nD;JEQ\n@THAT\nD=A\n@%2$s.%4$s$POPSTACK%3$d\n0;JMP\n(%2$s.%4$s$POINTER%3$d)\n@THIS\nD=A\n(%2$s.%4$s$POPSTACK%3$d)\n@R13\nM=D\n@SP\nAM=M-1\nD=M\n@R13\nA=M\nM=D\n";
+                    assembly = "@%1$s\n" + //
+                            "D=A\n" + //
+                            "@%4$s$POINTER%3$d\n" + //
+                            "D;JEQ\n" + //
+                            "@THAT\n" + //
+                            "D=A\n" + //
+                            "@%4$s$POPSTACK%3$d\n" + //
+                            "0;JMP\n" + //
+                            "(%4$s$POINTER%3$d)\n" + //
+                            "@THIS\n" + //
+                            "D=A\n" + //
+                            "(%4$s$POPSTACK%3$d)\n" + //
+                            "@R13\n" + //
+                            "M=D\n" + //
+                            "@SP\n" + //
+                            "AM=M-1\n" + //
+                            "D=M\n" + //
+                            "@R13\n" + //
+                            "A=M\n" + //
+                            "M=D\n" + //
+                            "";
                     break;
 
                 default:
-                    assembly = "// " + line + "\n";
+                    assembly = "";
                     break;
             }
         }
@@ -115,109 +315,323 @@ public class AssemblyGenerator {
         return assembly + "\n";
     }
 
-    private String logicCommand(String line, String command, String baseFileName, String functionName, int counter) {
+    private String logicCommand(String command, String baseFileName, String functionName, int counter) {
         String assembly;
 
         switch (command) {
             case "add":
-                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nM=D+M\n@SP\nM=M-1\n";
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "D=M\n" + //
+                        "M=0\n" + //
+                        "A=A-1\n" + //
+                        "M=D+M\n" + //
+                        "@SP\n" + //
+                        "M=M-1\n" + //
+                        "";
                 break;
 
             case "sub":
-                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nM=M-D\n@SP\nM=M-1\n";
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "D=M\n" + //
+                        "M=0\n" + //
+                        "A=A-1\n" + //
+                        "M=M-D\n" + //
+                        "@SP\n" + //
+                        "M=M-1\n" + //
+                        "";
                 break;
 
             case "neg":
-                assembly = "// " + line + "\n@SP\nA=M-1\nM=-M\n";
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "M=-M\n" + //
+                        "";
                 break;
 
             case "eq":
-                assembly = "// " + line
-                        + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nD=M-D\n@%2$s.%3$s$EQUAL%1$d\nD;JEQ\nD=0\n@%2$s.%3$s$SET%1$d\n0;JMP\n(%2$s.%3$s$EQUAL%1$d)\nD=-1\n(%2$s.%3$s$SET%1$d)\n@SP\nA=M-1\nA=A-1\nM=D\n@SP\nM=M-1\n";
-                assembly = String.format(assembly, counter, baseFileName,
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "D=M\n" + //
+                        "M=0\n" + //
+                        "A=A-1\n" + //
+                        "D=M-D\n" + //
+                        "@%2$s$EQUAL%1$d\n" + //
+                        "D;JEQ\n" + //
+                        "D=0\n" + //
+                        "@%2$s$SET%1$d\n" + //
+                        "0;JMP\n" + //
+                        "(%2$s$EQUAL%1$d)\n" + //
+                        "D=-1\n" + //
+                        "(%2$s$SET%1$d)\n" + //
+                        "@SP\n" + //
+                        "A=M-1\n" + //
+                        "A=A-1\n" + //
+                        "M=D\n" + //
+                        "@SP\n" + //
+                        "M=M-1\n" + //
+                        "";
+                assembly = String.format(assembly, counter,
                         functionName == null ? baseFileName : functionName);
                 break;
 
             case "gt":
-                assembly = "// " + line
-                        + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nD=M-D\n@%2$s.%3$s$EQUAL%1$d\nD;JGT\nD=0\n@%2$s.%3$s$SET%1$d\n0;JMP\n(%2$s.%3$s$EQUAL%1$d)\nD=-1\n(%2$s.%3$s$SET%1$d)\n@SP\nA=M-1\nA=A-1\nM=D\n@SP\nM=M-1\n";
-                assembly = String.format(assembly, counter, baseFileName,
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "D=M\n" + //
+                        "M=0\n" + //
+                        "A=A-1\n" + //
+                        "D=M-D\n" + //
+                        "@%2$s$EQUAL%1$d\n" + //
+                        "D;JGT\n" + //
+                        "D=0\n" + //
+                        "@%2$s$SET%1$d\n" + //
+                        "0;JMP\n" + //
+                        "(%2$s$EQUAL%1$d)\n" + //
+                        "D=-1\n" + //
+                        "(%2$s$SET%1$d)\n" + //
+                        "@SP\n" + //
+                        "A=M-1\n" + //
+                        "A=A-1\n" + //
+                        "M=D\n" + //
+                        "@SP\n" + //
+                        "M=M-1\n" + //
+                        "";
+                assembly = String.format(assembly, counter,
                         functionName == null ? baseFileName : functionName);
                 break;
 
             case "lt":
-                assembly = "// " + line
-                        + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nD=M-D\n@%2$s.%3$s$EQUAL%1$d\nD;JLT\nD=0\n@%2$s.%3$s$SET%1$d\n0;JMP\n(%2$s.%3$s$EQUAL%1$d)\nD=-1\n(%2$s.%3$s$SET%1$d)\n@SP\nA=M-1\nA=A-1\nM=D\n@SP\nM=M-1\n";
-                assembly = String.format(assembly, counter, baseFileName,
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "D=M\n" + //
+                        "M=0\n" + //
+                        "A=A-1\n" + //
+                        "D=M-D\n" + //
+                        "@%2$s$EQUAL%1$d\n" + //
+                        "D;JLT\n" + //
+                        "D=0\n" + //
+                        "@%2$s$SET%1$d\n" + //
+                        "0;JMP\n" + //
+                        "(%2$s$EQUAL%1$d)\n" + //
+                        "D=-1\n" + //
+                        "(%2$s$SET%1$d)\n" + //
+                        "@SP\n" + //
+                        "A=M-1\n" + //
+                        "A=A-1\n" + //
+                        "M=D\n" + //
+                        "@SP\n" + //
+                        "M=M-1\n" + //
+                        "";
+                assembly = String.format(assembly, counter,
                         functionName == null ? baseFileName : functionName);
                 break;
 
             case "and":
-                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nM=D&M\n@SP\nM=M-1\n";
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "D=M\n" + //
+                        "M=0\n" + //
+                        "A=A-1\n" + //
+                        "M=D&M\n" + //
+                        "@SP\n" + //
+                        "M=M-1\n" + //
+                        "";
                 break;
 
             case "or":
-                assembly = "// " + line + "\n@SP\nA=M-1\nD=M\nM=0\nA=A-1\nM=D|M\n@SP\nM=M-1\n";
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "D=M\n" + //
+                        "M=0\n" + //
+                        "A=A-1\n" + //
+                        "M=D|M\n" + //
+                        "@SP\n" + //
+                        "M=M-1\n" + //
+                        "";
                 break;
 
             case "not":
-                assembly = "// " + line + "\n@SP\nA=M-1\nM=!M\n";
+                assembly = "@SP\n" + //
+                        "A=M-1\n" + //
+                        "M=!M\n" + //
+                        "";
                 break;
 
             default:
-                assembly = "// " + line + "\n";
+                assembly = "";
                 break;
         }
         return assembly + "\n";
     }
 
-    private String branchingCommand(String line, String command, String data, String baseFileName, String functionName,
-            int counter) {
+    private String branchingCommand(String command, String data, String baseFileName,
+            String functionName) {
         String assembly;
 
         switch (command) {
             case "label":
                 if (functionName == null) {
-                    assembly = "// " + line + "\n(" + baseFileName + "." + baseFileName + "$" + data + ")\n";
+                    assembly = "(" + baseFileName + "$" + data + ")\n";
                     break;
                 }
-                assembly = "// " + line + "\n(" + baseFileName + "." + functionName + "$" + data + ")\n";
+                assembly = "(" + functionName + "$" + data + ")\n";
                 break;
 
             case "goto":
                 if (functionName == null) {
-                    assembly = "// " + line + "\n@" + baseFileName + "." + baseFileName + "$" + data + "\n0;JMP\n";
+                    assembly = "@" + baseFileName + "$" + data
+                            + "\n" + //
+                            "0;JMP\n" + //
+                            "";
                     break;
                 }
-                assembly = "// " + line + "\n@" + baseFileName + "." + functionName + "$" + data + "\n0;JMP\n";
+                assembly = "@" + functionName + "$" + data
+                        + "\n" + //
+                        "0;JMP\n" + //
+                        "";
                 break;
 
             case "if-goto":
                 if (functionName == null) {
-                    assembly = "// " + line + "\n@SP\nAM=M-1\nD=M\n@" + baseFileName + "." + baseFileName + "$" + data
-                            + "\nD;JGT\nM=M+1\n";
+                    assembly = "@SP\n" + //
+                            "AM=M-1\n" + //
+                            "D=M\n" + //
+                            "@" + baseFileName + "$" + data //
+                            + "\n" + //
+                            "D;JNE\n" + //
+                            "";
                     break;
                 }
-                assembly = "// " + line + "\n@SP\nAD=M\n@" + baseFileName + "." + functionName + "$" + data
-                        + "\nD;JGT\n";
+                assembly = "@SP\n" + //
+                        "AM=M-1\n" + //
+                        "D=M\n" + //
+                        "@" + functionName + "$" + data //
+                        + "\n" + //
+                        "D;JNE\n" + //
+                        "";
                 break;
 
             default:
-                assembly = "// " + line + "\n";
+                assembly = "";
                 break;
         }
         return assembly + "\n";
     }
 
     private String returnCommand() {
-        return "// return\n@SP\nD=M\n@ARG\nA=M\nM=D\n@ARG\nD=M\n@SP\nM=D+1\n@LCL\nD=M\n@R14\nAM=D-1\nD=M\n@THAT\nM=D\n@R14\nAM=M-1\nD=M\n@THIS\nM=D\n@R14\nAM=M-1\nD=M\n@ARG\nM=D\n@R14\nAM=M-1\nD=M\n@LCL\nM=D\n@R14\nA=M-1\nA=M\n0;JMP";
+        return "@LCL\n" + //
+                "D=M\n" + // endFrame = LCL
+                "@5\n" + //
+                "D=D-A\n" + //
+                "@R14\n" + //
+                "AM=D\n" + // R14 = endFrame - 5
+                "D=M\n" + //
+                "@R15\n" + //
+                "M=D\n" + // R15 = retAddr
+                "@ARG\n" + //
+                "D=M\n" + //
+                "@R13\n" + //
+                "M=D\n" + //
+                "@SP\n" + //
+                "AM=M-1\n" + //
+                "D=M\n" + //
+                "M=0\n" + //
+                "@R13\n" + //
+                "A=M\n" + //
+                "M=D\n" + // *ARG = pop()
+                "@ARG\n" + //
+                "D=M\n" + //
+                "@SP\n" + //
+                "M=D+1\n" + // SP = ARG + 1
+                "@R14\n" + //
+                "AM=M+1\n" + // endFrame++
+                "D=M\n" + //
+                "M=0\n" + //
+                "@LCL\n" + //
+                "M=D\n" + // LCL = *(endFrame - 4)
+                "@R14\n" + //
+                "AM=M+1\n" + // endFrame++
+                "D=M\n" + //
+                "M=0\n" + //
+                "@ARG\n" + //
+                "M=D\n" + // ARG = *(endFrame - 3)
+                "@R14\n" + //
+                "AM=M+1\n" + // endFrame++
+                "D=M\n" + //
+                "M=0\n" + //
+                "@THIS\n" + //
+                "M=D\n" + // THIS = *(endFrame - 2)
+                "@R14\n" + //
+                "A=M+1\n" + // endFrame++
+                "D=M\n" + //
+                "M=0\n" + //
+                "@THAT\n" + //
+                "M=D\n" + // THAT = *(endFrame - 1)
+                "@R15\n" + //
+                "D=M\n" + //
+                "A=D\n" + //
+                "0;JMP\n\n"; // goto (endFrame - 5)
     }
 
-    private String functionCommand(String line, String command, String newFunctionName, String data,
-            String baseFileName,
-            int counter) {
+    private String functionCommand(String command, String functionName, String data) {
         String assembly;
-        assembly = "// " + line + "\n";
-        return assembly;
+        if (command.equals("call")) {
+            assembly = "@%1$s$ret.%4$d\n" + //
+                    "D=A\n" + //
+                    "@SP\n" + //
+                    "A=M\n" + //
+                    "M=D\n" + // push caller$ret.i
+                    "@LCL\n" + //
+                    "D=M\n" + //
+                    "@SP\n" + //
+                    "AM=M+1\n" + //
+                    "M=D\n" + // push LCL
+                    "@ARG\n" + //
+                    "D=M\n" + //
+                    "@SP\n" + //
+                    "AM=M+1\n" + //
+                    "M=D\n" + // push ARG
+                    "@THIS\n" + //
+                    "D=M\n" + //
+                    "@SP\n" + //
+                    "AM=M+1\n" + //
+                    "M=D\n" + // push THIS
+                    "@THAT\n" + //
+                    "D=M\n" + //
+                    "@SP\n" + //
+                    "AM=M+1\n" + //
+                    "M=D\n" + // push THAT
+                    "@SP\n" + //
+                    "MD=M+1\n" + //
+                    "@LCL\n" + //
+                    "M=D\n" + // LCL = SP
+                    "@5\n" + //
+                    "D=D-A\n" + //
+                    "@%3$s\n" + //
+                    "D=D-A\n" + //
+                    "@ARG\n" + //
+                    "M=D\n" + // ARG = SP - 5 - nArgs
+                    "@%2$s\n" + //
+                    "0;JMP\n" + // goto functionName
+                    "(%1$s$ret.%4$d)\n" + // label caller$ret.i
+                    "";
+            returns++;
+            System.out.println("Returns: " + returns);
+            assembly = String.format(assembly, currentFunction, functionName, data, returns);
+        } else {
+            assembly = "(%1$s)\n" + // label fileName.functionName
+                    ("@0\n" + //
+                            "D=A\n" + //
+                            "@SP\n" + //
+                            "M=M+1\n" + //
+                            "A=M-1\n" + //
+                            "M=D\n") // push 0
+                            .repeat(Integer.parseInt(data)); // Repeats push 0 nVars times
+            currentFunction = functionName;
+            assembly = String.format(assembly, functionName);
+        }
+        return assembly + "\n";
     }
 }

@@ -13,16 +13,16 @@ M=M+1
 // pop pointer 1
 @1
 D=A
-@FibonacciSeries.FibonacciSeries$POINTER1
+@FibonacciSeries$POINTER1
 D;JEQ
 @THAT
 D=A
-@FibonacciSeries.FibonacciSeries$POPSTACK1
+@FibonacciSeries$POPSTACK1
 0;JMP
-(FibonacciSeries.FibonacciSeries$POINTER1)
+(FibonacciSeries$POINTER1)
 @THIS
 D=A
-(FibonacciSeries.FibonacciSeries$POPSTACK1)
+(FibonacciSeries$POPSTACK1)
 @R13
 M=D
 @SP
@@ -124,7 +124,7 @@ A=M
 M=D
 
 // label LOOP
-(FibonacciSeries.FibonacciSeries$LOOP)
+(FibonacciSeries$LOOP)
 
 // push argument 0
 @ARG
@@ -142,16 +142,15 @@ M=M+1
 @SP
 AM=M-1
 D=M
-@FibonacciSeries.FibonacciSeries$COMPUTE_ELEMENT
-D;JGT
-M=M+1
+@FibonacciSeries$COMPUTE_ELEMENT
+D;JNE
 
 // goto END
-@FibonacciSeries.FibonacciSeries$END
+@FibonacciSeries$END
 0;JMP
 
 // label COMPUTE_ELEMENT
-(FibonacciSeries.FibonacciSeries$COMPUTE_ELEMENT)
+(FibonacciSeries$COMPUTE_ELEMENT)
 
 // push that 0
 @THAT
@@ -244,16 +243,16 @@ M=M-1
 // pop pointer 1
 @1
 D=A
-@FibonacciSeries.FibonacciSeries$POINTER22
+@FibonacciSeries$POINTER22
 D;JEQ
 @THAT
 D=A
-@FibonacciSeries.FibonacciSeries$POPSTACK22
+@FibonacciSeries$POPSTACK22
 0;JMP
-(FibonacciSeries.FibonacciSeries$POINTER22)
+(FibonacciSeries$POINTER22)
 @THIS
 D=A
-(FibonacciSeries.FibonacciSeries$POPSTACK22)
+(FibonacciSeries$POPSTACK22)
 @R13
 M=D
 @SP
@@ -309,9 +308,9 @@ A=M
 M=D
 
 // goto LOOP
-@FibonacciSeries.FibonacciSeries$LOOP
+@FibonacciSeries$LOOP
 0;JMP
 
 // label END
-(FibonacciSeries.FibonacciSeries$END)
+(FibonacciSeries$END)
 

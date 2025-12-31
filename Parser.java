@@ -3,12 +3,13 @@ import java.io.FileNotFoundException;
 import java.util.Scanner;
 
 public class Parser {
-    private AssemblyGenerator generator;
+    private final AssemblyGenerator generator;
 
     public Parser(AssemblyGenerator generator) {
         this.generator = generator;
     }
 
+    @SuppressWarnings("CallToPrintStackTrace")
     public String prettify(File VMFile) {
         String cleanFile = "";
 
@@ -16,11 +17,15 @@ public class Parser {
             while (scanner.hasNextLine()) {
                 // Reads next line in assembly file
                 String line = scanner.nextLine();
-
+                System.out.println(line);
                 // Eliminates comments
                 if (line.contains("//")) {
-                    String[] lineWithComments = line.split("//");
-                    line = lineWithComments[0];
+                    if (line.equals("//")) {
+                        line = "";
+                    } else {
+                        String[] lineWithComments = line.split("//");
+                        line = lineWithComments[0];
+                    }
                 }
 
                 // Eliminates whitespace around command
@@ -38,22 +43,27 @@ public class Parser {
 
         return cleanFile;
     }
-    
+
+    public String getBootstrap() {
+        String bootstrap = generator.generateBootstrap();
+        bootstrap = "// bootstrap\n" + bootstrap;
+        return bootstrap;
+    }
+
     public String generateAssembly(String vmCode, String baseFileName) {
         String assemblyCode = "";
         int counter = 0;
 
-        Scanner scanner = new Scanner(vmCode);
-        while (scanner.hasNextLine()) {
-            // Reads next line in assembly file
-            String line = scanner.nextLine();
-            assemblyCode = assemblyCode + generator.generateAssembly(line, counter, baseFileName);
-            counter++;
+        try (Scanner scanner = new Scanner(vmCode)) {
+            while (scanner.hasNextLine()) {
+                // Reads next line in assembly file
+                String line = scanner.nextLine();
+                // System.out.println(line);
+                assemblyCode = assemblyCode + "// " + line + "\n"
+                        + generator.generateAssembly(line, counter, baseFileName);
+                counter++;
+            }
         }
-
-        scanner.close();
-
-        
 
         return assemblyCode;
     }

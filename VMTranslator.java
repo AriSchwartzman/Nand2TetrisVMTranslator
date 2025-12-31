@@ -1,7 +1,7 @@
 import java.io.File;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class VMTranslator {
     public static void main(String[] args) {
@@ -10,6 +10,7 @@ public class VMTranslator {
         File[] files;
         String assemblyCode = "";
         String assemblyFilePath;
+        boolean hasSys = false;
 
         if (args[0].endsWith(".vm")) {
             files = new File[1];
@@ -17,20 +18,19 @@ public class VMTranslator {
             assemblyFilePath = args[0].substring(0, args[0].length() - 2) + "asm";
         } else {
             File directory = new File(args[0]);
-
-            files = directory.listFiles(new FilenameFilter() {
-                public boolean accept(File f, String fileType) {
-                    return fileType.endsWith(".vm");}
-            });
-            System.out.println(files.length);
-            assemblyFilePath = args[0] + ".asm";
+            if (Arrays.asList(directory.list()).contains("Sys.vm")) {
+                hasSys = true;
+            }
+            files = directory
+                    .listFiles((File f, String fileType) -> fileType.endsWith(".vm") && !fileType.equals("Sys.vm"));
+            assemblyFilePath = args[0] + "/" + args[0] + ".asm";
+            System.out.println(assemblyFilePath);
         }
 
-
         try {
-            File myObj = new File(assemblyFilePath); // Create File object
-            if (myObj.createNewFile()) { // Try to create the file
-                System.out.println("File created: " + myObj.getName());
+            File asmFile = new File(assemblyFilePath); // Create File object
+            if (asmFile.createNewFile()) { // Try to create the file
+                System.out.println("File created: " + asmFile.getName());
             } else {
                 System.out.println("File already exists.");
             }
@@ -39,17 +39,26 @@ public class VMTranslator {
             e.printStackTrace(); // Print error details
         }
 
+        if (hasSys) {
+            File vmFile = new File(args[0] + "/Sys.vm");
+            String cleanVMCode = parser.prettify(vmFile);
+            if (cleanVMCode.contains("Sys.init")) {
+                assemblyCode += parser.getBootstrap();
+            }
+            String baseFileName = "Sys";
+            // System.out.println(vmFile.getAbsolutePath());
+            assemblyCode += parser.generateAssembly(cleanVMCode, baseFileName);
+        }
+
         for (File vmFile : files) {
             String fileName = vmFile.getName();
             String baseFileName = fileName.substring(0, fileName.length() - 3);
-            System.out.println(baseFileName);
+            // System.out.println(baseFileName);
             String cleanVMCode = parser.prettify(vmFile);
             assemblyCode += parser.generateAssembly(cleanVMCode, baseFileName);
         }
 
-
-        try {
-            FileWriter myWriter = new FileWriter(assemblyFilePath);
+        try (FileWriter myWriter = new FileWriter(assemblyFilePath)) {
             myWriter.write(assemblyCode);
             myWriter.close(); // must close manually
             System.out.println("Successfully wrote to the file.");
@@ -58,5 +67,5 @@ public class VMTranslator {
             e.printStackTrace();
         }
     }
-    
+
 }
